@@ -6,7 +6,7 @@ const signupValidation = [
     .isLength({ min: 8 })
     .withMessage("Password must be at least 8 characters"),
   body("designation")
-  .optional()
+  .notEmpty()
     .isIn(['OWNER','DOCTOR','NURSE','RECEPTIONIST','CASHIER',
             'LAB_TECH','PHARMACIST','ADMIN'])
     .withMessage("Role mismatch"),
@@ -19,7 +19,7 @@ const signupValidation = [
     .isLength({min:10})
     .withMessage("phone number must be 10 digits"),
   body("department")
-  .optional()
+  .notEmpty()
     .isIn(['OPD','IPD','LAB','PHARMACY','ADMIN'])
     .withMessage("Dept mismatch"), 
 

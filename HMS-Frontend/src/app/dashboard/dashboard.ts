@@ -1,10 +1,10 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Component,ChangeDetectorRef } from '@angular/core';
-
+import { CommonModule, DatePipe } from '@angular/common';
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [],
+  imports: [CommonModule,DatePipe],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css',
 })
