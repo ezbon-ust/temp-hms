@@ -9,6 +9,8 @@ import {
   Validators,
 } from '@angular/forms';
 import { Auth } from '../services/auth';
+import { MatSnackBar } from '@angular/material/snack-bar';
+
 
 @Component({
   selector: 'app-signup',
@@ -31,7 +33,9 @@ export class Signup {
   constructor(
     private fb: FormBuilder,
     private authService: Auth,
-    private router: Router
+    private router: Router,
+     private snackBar: MatSnackBar
+    // private toastr:ToastrService
   ) {
     this.signupForm = this.fb.group({
       // common
@@ -134,7 +138,12 @@ export class Signup {
 
     this.authService.signup(payload).subscribe({
       next: () => { 
-        alert("signup success")
+        
+        this.snackBar.open(
+        'Signup successful!',
+        'Close',
+        { duration: 8000 }
+        );
         this.router.navigate(['/login']);
       },
       error: (err) => {
