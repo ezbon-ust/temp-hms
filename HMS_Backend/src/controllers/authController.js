@@ -79,7 +79,7 @@ exports.signup = async (req,res)=>{
       subject: "HMS — Verify Your Email",
       html: `
         <h2>Welcome to HMS</h2>
-        <p>Hi ${first_name}, thank you for registering.</p>
+        <p>Hi ${name}, thank you for registering.</p>
         <p>Please verify your email address by clicking the link below:</p>
         <a href="${verifyUrl}" target="_blank">${verifyUrl}</a>
         <p>This link expires in <strong>24 hours</strong>.</p>
