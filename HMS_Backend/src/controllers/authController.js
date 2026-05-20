@@ -9,6 +9,7 @@ const { findOne } = require("../models/Counter");
 
 
 exports.signup = async (req,res)=>{ 
+  
  
     try{
 
