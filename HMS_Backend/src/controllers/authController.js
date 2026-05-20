@@ -11,7 +11,9 @@ const { findOne } = require("../models/Counter");
 exports.signup = async (req,res)=>{ 
  
     try{
-       const{ email,
+
+       const{
+        email,
         password,
         name,
         phone,
@@ -23,87 +25,100 @@ exports.signup = async (req,res)=>{
         specialisation,
         qualification,
         consultationFee,
-        availabilitySlots} = req.body;
+        availabilitySlots
+       } = req.body;
          
         const existingUser = await User.findOne({ email });
+
         if (existingUser) {
-        return res.status(409).json({ message: "Email already registered" });
+          return res.status(409).json({
+            message: "Email already registered"
+          });
         }
-        
 
         const password_hash = await bcrypt.hash(password,12);
 
- 
-    const employee = new Employee({
-  email,
-  name,
-  phone,
-  department,
-  designation,
-  status,
-  joiningDate,
-
-  medicalRegistrationNumber,
-  specialisation,
-  qualification,
-  consultationFee,
-  availabilitySlots
-});
+        const employee = new Employee({
+          email,
+          name,
+          phone,
+          department,
+          designation,
+          status,
+          joiningDate,
+          medicalRegistrationNumber,
+          specialisation,
+          qualification,
+          consultationFee,
+          availabilitySlots
+        });
         
         const savedEmployee = await employee.save(); 
        
-        
-     // Generate verification token
-    const verification_token = crypto.randomBytes(32).toString("hex");
-    const verification_token_expiry = new Date(
-      Date.now() + 24 * 60 * 60 * 1000,
-    ); // 24 hours
+        // Generate verification token
+        const verification_token = crypto
+          .randomBytes(32)
+          .toString("hex");
 
+        const verification_token_expiry = new Date(
+          Date.now() + 24 * 60 * 60 * 1000
+        );
 
-     const user = await User.create({
-      email,
-      passwordHash:password_hash,
-      role:designation,
-      employeeId: savedEmployee.employeeId,
-      createdAt: new Date(),
-      lastLoginAt:new Date(),
-      verification_token,
-      verification_token_expiry,
-     
-    }); 
+        const user = await User.create({
+          email,
+          passwordHash: password_hash,
+          role: designation,
+          employeeId: savedEmployee.employeeId,
+          createdAt: new Date(),
+          lastLoginAt: new Date(),
+          verification_token,
+          verification_token_expiry,
+        }); 
 
-    // Send verification email
-    const verifyUrl = `${process.env.FRONTEND_URL}/verify-email?token=${verification_token}`;
-    await sendEmail({
-      to: user.email,
-      subject: "HMS — Verify Your Email",
-      html: `
-        <h2>Welcome to HMS</h2>
-        <p>Hi ${name}, thank you for registering.</p>
-        <p>Please verify your email address by clicking the link below:</p>
-        <a href="${verifyUrl}" target="_blank">${verifyUrl}</a>
-        <p>This link expires in <strong>24 hours</strong>.</p>
-        <p>If you did not create an account, please ignore this email.</p>
-      `,
-    });
+        // MAIL TRY CATCH
+        try {
 
-  
-    
-    res.status(201).json({
-      message:
-        "Account created successfully. ",
-        
-    });
+          const verifyUrl =
+            `${process.env.FRONTEND_URL}/verify-email?token=${verification_token}`;
 
+          await sendEmail({
+            to: user.email,
+            subject: "HMS — Verify Your Email",
+            html: `
+              <h2>Welcome to HMS</h2>
+              <p>Hi ${name}, thank you for registering.</p>
+              <p>Please verify your email address:</p>
+              <a href="${verifyUrl}">
+                ${verifyUrl}
+              </a>
+            `,
+          });
+
+          console.log("Mail sent");
+
+        } catch(mailErr) {
+
+          console.log(
+            "Email failed:",
+            mailErr.message
+          );
+
+        }
+
+        res.status(201).json({
+          success: true,
+          message: "Account created successfully"
+        });
 
     }
     catch(err){
+
         res.status(500).json({
             success:false,
             message:err.message
         });
+
     }
-    
 }
 //-----------------Login----------------------------------------------
 
