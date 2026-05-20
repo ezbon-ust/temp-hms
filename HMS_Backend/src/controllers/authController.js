@@ -1,7 +1,7 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
-
+const sendEmail = require("../utils/sendEmail")
 
 const Employee = require("../models/Employee");
 const User = require("../models/User");
@@ -53,6 +53,11 @@ exports.signup = async (req,res)=>{
         const savedEmployee = await employee.save(); 
        
         
+     // Generate verification token
+    const verification_token = crypto.randomBytes(32).toString("hex");
+    const verification_token_expiry = new Date(
+      Date.now() + 24 * 60 * 60 * 1000,
+    ); // 24 hours
 
 
      const user = await User.create({
@@ -61,9 +66,26 @@ exports.signup = async (req,res)=>{
       role:designation,
       employeeId: savedEmployee.employeeId,
       createdAt: new Date(),
-      lastLoginAt:new Date()
+      lastLoginAt:new Date(),
+      verification_token,
+      verification_token_expiry,
      
     }); 
+
+    // Send verification email
+    const verifyUrl = `${process.env.FRONTEND_URL}/verify-email?token=${verification_token}`;
+    await sendEmail({
+      to: user.email,
+      subject: "HMS — Verify Your Email",
+      html: `
+        <h2>Welcome to HMS</h2>
+        <p>Hi ${first_name}, thank you for registering.</p>
+        <p>Please verify your email address by clicking the link below:</p>
+        <a href="${verifyUrl}" target="_blank">${verifyUrl}</a>
+        <p>This link expires in <strong>24 hours</strong>.</p>
+        <p>If you did not create an account, please ignore this email.</p>
+      `,
+    });
 
   
     
