@@ -52,11 +52,12 @@ const addEmployee = async(req,res)=>{
 
         const user = await User.create({
             email,
-            passwordHash: password_hash,
-            role: designation,
+            status:'PENDING',
+            role: savedEmployee.designation,
             employeeId: savedEmployee.employeeId,
             createdAt: new Date(),
-            lastLoginAt: new Date(),
+            
+            is_verified:false,
             verification_token,
             verification_token_expiry,
         }); 
