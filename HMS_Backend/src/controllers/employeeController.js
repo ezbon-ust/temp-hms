@@ -1,6 +1,8 @@
 const Employee = require("../models/Employee");
 const User = require("../models/User"); 
-const sendEmail = require("../utils/sendEmail")
+const sendEmail = require("../utils/sendEmail");
+const crypto = require("crypto");
+    
 const {findOne} = require("../models/Counter");
 const { default: mongoose } = require("mongoose");
 
