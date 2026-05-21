@@ -35,6 +35,7 @@ const getEmployeeById = async(req,res)=>{
 const addEmployee = async(req,res)=>{
     try{
         const email = req.body.email;
+        const name = req.body.name;
         const existingUser = await User.findOne({email});
         if(existingUser)
             return res.status(409).json({"message":"Email already registered"});
