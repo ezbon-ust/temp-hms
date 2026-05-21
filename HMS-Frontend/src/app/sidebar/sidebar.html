@@ -1,0 +1,22 @@
+<div class="sidebar">
+  <div class="sidebar-brand">
+    <span class="brand-icon">🏥</span>
+    <span class="brand-name">Vanguard HMS</span>
+  </div>
+
+  <nav class="sidebar-nav">
+    <a routerLink="/dashboard" routerLinkActive="active" class="nav-item">
+      <span class="nav-icon">⊞</span> Dashboard
+    </a>
+    <a routerLink="/employees" routerLinkActive="active" class="nav-item">
+      <span class="nav-icon">👥</span> Employees
+    </a>
+    <a routerLink="/add-employee" routerLinkActive="active" class="nav-item">
+      <span class="nav-icon">＋</span> Add Employee
+    </a>
+  </nav>
+
+  <div class="sidebar-footer">
+    <button class="logout-btn" (click)="logout()">Logout</button>
+  </div>
+</div>

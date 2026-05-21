@@ -2,3 +2,9 @@
 /* styles.css — only this */
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { font-family: 'Inter', sans-serif; margin: 0; }
+
+.opaque-snackbar {
+  background-color: rgba(0, 0, 0, 0.95) !important; /* more opaque */
+  color: hsl(0, 0%, 100%) !important;
+  opacity: 1;
+}

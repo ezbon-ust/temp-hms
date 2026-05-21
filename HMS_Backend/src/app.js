@@ -10,7 +10,7 @@ app.use(express.json());
 app.use(helmet());
 app.use(
     cors({
-        origin: "http://localhost:4200",
+        origin: process.env.FRONTEND_URL,
         credentials:true,
     }),
 ); 
@@ -21,7 +21,7 @@ const authRoutes = require("./routes/authRoutes");
 app.use("/api/auth",authRoutes);
 
 const employeeRoutes = require("./routes/employeeRoutes")
-app.use("/api/employees",employeeRoutes);
+app.use("/api/admin",employeeRoutes);
 
 const nodeRoutes = require("./routes/nodeRoutes")
 app.use("/api/node",nodeRoutes)

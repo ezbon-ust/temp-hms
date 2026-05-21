@@ -67,11 +67,12 @@ exports.signup = async (req,res)=>{
 
         const user = await User.create({
           email,
-          passwordHash: password_hash,
+          
           role: designation,
           employeeId: savedEmployee.employeeId,
           createdAt: new Date(),
-          lastLoginAt: new Date(),
+         
+          is_verified:false,
           verification_token,
           verification_token_expiry,
         }); 
@@ -87,7 +88,7 @@ exports.signup = async (req,res)=>{
             subject: "HMS — Verify Your Email",
             html: `
               <h2>Welcome to HMS</h2>
-              <p>Hi ${name}, thank you for registering.</p>
+              <p>Hi ${name}</p>
               <p>Please verify your email address:</p>
               <a href="${verifyUrl}">
                 ${verifyUrl}
