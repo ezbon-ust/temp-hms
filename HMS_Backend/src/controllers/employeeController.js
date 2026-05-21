@@ -52,7 +52,7 @@ const addEmployee = async(req,res)=>{
 
         const user = await User.create({
             email,
-            status:'PENDING',
+            status:'INACTIVE',
             role: savedEmployee.designation,
             employeeId: savedEmployee.employeeId,
             createdAt: new Date(),
@@ -93,7 +93,7 @@ const addEmployee = async(req,res)=>{
         }
 
 
-        return res.status(201).json({savedEmployee})
+        return res.status(201).json({"message":"employee saved",savedEmployee})
     }
     catch(err){
        res.status(500).json({ message: err.message }); 
