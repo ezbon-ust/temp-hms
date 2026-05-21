@@ -1,52 +1,31 @@
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
-import { Router, RouterModule } from '@angular/router';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Auth } from '../services/auth';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
+
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink],
   templateUrl: './login.html',
-  styleUrl: './login.css',
+  styleUrl: './login.css'
 })
 export class Login {
-  loginForm: FormGroup;
-  errorMsg = '';
+  private fb = inject(FormBuilder);
+  
+  private router = inject(Router);
 
-  constructor(private fb: FormBuilder, private authService: Auth, private router: Router) {
+  loginForm: FormGroup;
+  loading = false;
+  errorMessage = '';
+
+  constructor() {
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required, Validators.minLength(6)]],
+      password: ['', Validators.required]
     });
   }
 
-  onSubmit() {
-    if (this.loginForm.valid) {
-      this.errorMsg = '';
-      this.authService.login(this.loginForm.value).subscribe({
-        next: (res: any) => {
-          if (res.token) localStorage.setItem('token', res.token);
-          this.router.navigate(['/dashboard']);
-        },
-        error: () => {
-          this.errorMsg = 'Login failed. Check your credentials.';
-        },
-      });
-    } else {
-      this.errorMsg = 'The username or password is incorrect.';
-      this.loginForm.markAllAsTouched();
-    }
-  }
-
-  get emailInvalid() {
-    const c = this.loginForm.get('email');
-    return c?.invalid && c?.touched;
-  }
-
-  get passwordInvalid() {
-    const c = this.loginForm.get('password');
-    return c?.invalid && c?.touched;
-  }
+ 
 }
