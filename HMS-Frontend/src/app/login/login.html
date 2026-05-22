@@ -7,7 +7,7 @@
         <p class="login-card__subtitle">Login to your account</p>
       </div>
 
-      <form [formGroup]="loginForm" >
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
 
         <!-- Email -->
         <div class="form-group">
