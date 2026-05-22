@@ -1,47 +1,50 @@
 const Employee = require("../models/Employee");
-const User = require("../models/User"); 
+const User = require("../models/User");
 const sendEmail = require("../utils/sendEmail");
 const crypto = require("crypto");
-    
-const {findOne} = require("../models/Counter");
-const { default: mongoose } = require("mongoose");
 
-const getAllEmployees = async (req,res)=>{
-    try{
-    const employees = await Employee.find({
-        designation:{$nin:['OWNER','ADMIN']}
-    }); 
-    return res.status(200).json({employees});
-    }
-    catch(err){
-       return res.status(500).json({ message: err.message });
-    }
-} 
 
-const getEmployeeById = async(req,res)=>{
-    try{
-        
-        const employee = await Employee.find({
-            employeeId:req.params.id
+
+const getAllEmployees = async (req, res) => {
+    try {
+        const employees = await Employee.find({
+            designation: { $nin: ['OWNER', 'ADMIN'] }
         });
-        return res.status(200).json({employee})
+        return res.status(200).json({ employees });
     }
-    catch(err){
-       res.status(500).json({ message: err.message }); 
+    catch (err) {
+        return res.status(500).json({ message: err.message });
     }
-} 
+}
+
+const getEmployeeById = async (req, res) => {
+    try {
+        const employee = await Employee.findOne({
+            employeeId: req.params.employeeId
+        });
+        if (!employee) {
+            return res.status(404).json({
+                message: "Employee not found"
+            });
+        }
+        return res.status(200).json({ employee })
+    }
+    catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+}
 
 
-const addEmployee = async(req,res)=>{
-    try{
+const addEmployee = async (req, res) => {
+    try {
         const email = req.body.email;
         const name = req.body.name;
-        const existingUser = await User.findOne({email});
-        if(existingUser)
-            return res.status(409).json({"message":"Email already registered"});
+        const existingUser = await User.findOne({ email });
+        if (existingUser)
+            return res.status(409).json({ "message": "Email already registered" });
 
         const employee = new Employee(req.body);
-        const savedEmployee = await employee.save(); 
+        const savedEmployee = await employee.save();
 
         //mail function 
         // Generate verification token
@@ -55,26 +58,26 @@ const addEmployee = async(req,res)=>{
 
         const user = await User.create({
             email,
-            status:'INACTIVE',
+            status: 'INACTIVE',
             role: savedEmployee.designation,
             employeeId: savedEmployee.employeeId,
             createdAt: new Date(),
-            
-            is_verified:false,
+
+            is_verified: false,
             verification_token,
             verification_token_expiry,
-        }); 
+        });
 
         // MAIL TRY CATCH
         try {
 
             const verifyUrl =
-            `${process.env.FRONTEND_URL}/verify-email?token=${verification_token}`;
+                `${process.env.FRONTEND_URL}/verify-email?token=${verification_token}`;
 
             await sendEmail({
-            to: user.email,
-            subject: "HMS — Verify Your Email",
-            html: `
+                to: user.email,
+                subject: "HMS — Verify Your Email",
+                html: `
                 <h2>Welcome to HMS</h2>
                 <p>Hi ${name}, thank you for registering.</p>
                 <p>Please verify your email address:</p>
@@ -86,48 +89,46 @@ const addEmployee = async(req,res)=>{
 
             console.log("Mail sent");
 
-        } catch(mailErr) {
+        } catch (mailErr) {
 
             console.log(
-            "Email failed:",
-            mailErr.message
+                "Email failed:",
+                mailErr.message
             );
 
         }
 
 
-        return res.status(201).json({"message":"employee saved",savedEmployee})
+        return res.status(201).json({ "message": "employee saved", savedEmployee })
     }
-    catch(err){
-       res.status(500).json({ message: err.message }); 
+    catch (err) {
+        res.status(500).json({ message: err.message });
     }
-} 
-
-const deleteEmployee = async (req,res)=>{
-    try{
-        await Employee.findOneAndDelete({
-            employeeId:req.params.id
-        });
-      
-    }
-    catch(err){
-       res.status(500).json({ message: err.message }); 
-    }
-} 
+}
 
 
-const updateEmployee = async (req,res)=>{
-    try{
-        const updatedemployee = await Employee.findOneAndUpdate(
-            {employeeId:req.params.id},
+const updateEmployee = async (req, res) => {
+    try {
+        const updatedEmployee = await Employee.findOneAndUpdate(
+            { employeeId: req.params.employeeId },
             req.body,
-            {new:true}
+            { new: true }
         );
-    return res.status(200).json(updatedEmployee);
+        if (!updatedEmployee) {
+            return res.status(404).json({
+                message: "Employee not found"
+            });
+        }
+        return res.status(200).json({
+             message: "Employee updated successfully",
+            updatedEmployee
+        });
     }
-    catch(err){
-       res.status(500).json({ message: err.message }); 
+    catch (err) {
+       return res.status(500).json({ message: err.message });
     }
 
 }
-module.exports = {getAllEmployees,getEmployeeById,addEmployee,deleteEmployee,updateEmployee}
+
+
+module.exports = { getAllEmployees, getEmployeeById, addEmployee, updateEmployee }

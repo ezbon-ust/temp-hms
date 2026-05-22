@@ -4,12 +4,12 @@ const router  = express.Router();
 const auth = require("../middlewares/authMiddleware")
 const authorizeAdmin = require("../middlewares/authorizeAdmin")
 
-const {getAllEmployees,getEmployeeById,addEmployee,updateEmployee,deleteEmployee} = require("../controllers/employeeController")
+const {getAllEmployees,getEmployeeById,addEmployee,updateEmployee} = require("../controllers/employeeController")
 router.get("/",auth,authorizeAdmin,getAllEmployees);
-router.get("/:id",auth,authorizeAdmin,getEmployeeById);
-router.post("/",addEmployee);
-router.put("/:id",auth,authorizeAdmin,updateEmployee);
-router.delete("/:id",auth,authorizeAdmin,deleteEmployee); 
+router.get("/:employeeId",auth,authorizeAdmin,getEmployeeById);
+router.post("/",auth,authorizeAdmin,addEmployee);
+router.put("/:employeeId",auth,authorizeAdmin,updateEmployee);
+
 
 module.exports = router;
 

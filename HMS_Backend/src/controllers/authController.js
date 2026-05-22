@@ -7,121 +7,143 @@ const Employee = require("../models/Employee");
 const User = require("../models/User");
 const { findOne } = require("../models/Counter");
 
+//--------------Register----------------------------
+exports.register = async (req, res) => {
 
-exports.signup = async (req,res)=>{ 
-  
- 
-    try{
+  try {
 
-       const{
-        email,
-        password,
-        name,
-        phone,
-        department,
-        designation,
-        status,
-        joiningDate,
-        medicalRegistrationNumber,
-        specialisation,
-        qualification,
-        consultationFee,
-        availabilitySlots
-       } = req.body;
-         
-        const existingUser = await User.findOne({ email });
+    // BASE DATA
+    const {
+      email,
+      password,
+      name,
+      phone,
+      department,
+      designation,
+      joiningDate
+    } = req.body;
 
-        if (existingUser) {
-          return res.status(409).json({
-            message: "Email already registered"
-          });
-        }
 
-        const password_hash = await bcrypt.hash(password,12);
+    // CHECK EXISTING USER
+    const existingUser = await User.findOne({ email });
 
-        const employee = new Employee({
-          email,
-          name,
-          phone,
-          department,
-          designation,
-          status,
-          joiningDate,
-          medicalRegistrationNumber,
-          specialisation,
-          qualification,
-          consultationFee,
-          availabilitySlots
-        });
-        
-        const savedEmployee = await employee.save(); 
-       
-        // Generate verification token
-        const verification_token = crypto
-          .randomBytes(32)
-          .toString("hex");
+    if (existingUser) {
 
-        const verification_token_expiry = new Date(
-          Date.now() + 24 * 60 * 60 * 1000
-        );
-
-        const user = await User.create({
-          email,
-          
-          role: designation,
-          employeeId: savedEmployee.employeeId,
-          createdAt: new Date(),
-         
-          is_verified:false,
-          verification_token,
-          verification_token_expiry,
-        }); 
-
-        // MAIL TRY CATCH
-        try {
-
-          const verifyUrl =
-            `${process.env.FRONTEND_URL}/verify-email?token=${verification_token}`;
-
-          await sendEmail({
-            to: user.email,
-            subject: "HMS — Verify Your Email",
-            html: `
-              <h2>Welcome to HMS</h2>
-              <p>Hi ${name}</p>
-              <p>Please verify your email address:</p>
-              <a href="${verifyUrl}">
-                ${verifyUrl}
-              </a>
-            `,
-          });
-
-          console.log("Mail sent");
-
-        } catch(mailErr) {
-
-          console.log(
-            "Email failed:",
-            mailErr.message
-          );
-
-        }
-
-        res.status(201).json({
-          success: true,
-          message: "Account created successfully"
-        });
-
+      return res.status(409).json({
+        success: false,
+        message: "Email already registered"
+      });
     }
-    catch(err){
 
-        res.status(500).json({
-            success:false,
-            message:err.message
-        });
 
+    // HASH PASSWORD
+    const passwordHash =
+      await bcrypt.hash(password, 12);
+
+
+    // EMPLOYEE OBJECT
+    const employeeData = {
+      email,
+      name,
+      phone,
+      department,
+      designation,
+      joiningDate,
+      status: "ACTIVE"
+    };
+    // ROLE BASED FIELDS
+    // DOCTOR
+    if (designation === "DOCTOR") {
+      employeeData.medicalRegistrationNumber =
+        req.body.medicalRegistrationNumber;
+
+      employeeData.specialisation =
+        req.body.specialisation;
+
+      employeeData.qualification =
+        req.body.qualification || [];
     }
-}
+    // NURSE
+    if (designation === "NURSE") {
+
+      employeeData.qualification =
+        req.body.qualification || [];
+    }
+    // LAB TECH
+    if (designation === "LAB_TECH") {
+
+      employeeData.qualification =
+        req.body.qualification || [];
+    }
+    // PHARMACIST
+    if (designation === "PHARMACIST") {
+
+      employeeData.qualification =
+        req.body.qualification || [];
+    }
+    // CREATE EMPLOYEE
+    const employee =
+      new Employee(employeeData);
+
+    const savedEmployee =
+      await employee.save();
+    // GENERATE VERIFICATION TOKEN
+    const verification_token =
+      crypto.randomBytes(32).toString("hex");
+    const verification_token_expiry =
+      new Date(
+        Date.now() + 24 * 60 * 60 * 1000
+      );
+    // CREATE USER
+    const user = await User.create({
+      email,
+      passwordHash,
+      role: designation,
+      employeeId:savedEmployee.employeeId,
+      status: "PENDING",
+      createdAt: new Date(),
+      is_verified: false,
+      verification_token,
+      verification_token_expiry
+    });
+    // SEND EMAIL
+    try {
+      const verifyUrl =
+        `${process.env.FRONTEND_URL}/verify-email?token=${verification_token}`;
+      await sendEmail({
+        to: user.email,
+        subject: "HMS — Verify Your Email",
+        html: `
+          <h2>Welcome to HMS</h2>
+          <p>Hello ${name}</p>
+          <p>Please verify your email:</p>
+          <a href="${verifyUrl}">
+            Verify Email
+          </a>
+        `
+      });
+      console.log("Verification email sent");
+    }
+    catch (mailErr) {
+      console.log(
+        "Email failed:",
+        mailErr.message
+      );
+    }
+    // RESPONSE
+    res.status(201).json({
+      success: true,
+      message:
+        "Registration submitted successfully. Please verify your email and wait for admin approval."
+    });
+  }
+  catch (err) {
+    res.status(500).json({
+      success: false,
+      message: err.message
+    });
+  }
+};
 //-----------------Login----------------------------------------------
 
 exports.login = async (req,res)=>{
@@ -136,6 +158,24 @@ exports.login = async (req,res)=>{
     if(!isMatch){
       return res.status(401).json({message:"Invalid email or password"})
     } 
+
+    if(!user.is_verified){
+      return res.status(401).json({message:"Please verify your email"})
+    } 
+
+    if(user.status==="PENDING"){
+      return res.status(401).json({message:"Waiting for admin approval"})
+    } 
+
+     if(user.status==="REJECTED"){
+      return res.status(401).json({message:"Your request for account creation was denied by admin"})
+    } 
+    
+    if(user.status==="INACTIVE"){
+      return res.status(401).json({message:"Your account has been deactivated. Please contact admin."})
+    }  
+
+
     user.lastLoginAt = new Date();
     await user.save(); 
 
@@ -146,12 +186,9 @@ exports.login = async (req,res)=>{
     );  
     
     const profile = await Employee.findOne({employeeId:user.employeeId});
-
-
     res.status(200).json({
       message:"Login successful",
       token,
-      
     });
 
   }
@@ -161,8 +198,68 @@ exports.login = async (req,res)=>{
   }
 } 
 
+//----------------verify email--------------------------------
+exports.verifyEmail = async (req, res) => {
+  try {
+    // GET TOKEN FROM QUERY
+    const { token } = req.query;
+    // TOKEN REQUIRED
+    if (!token) {
+      return res.status(400).json({
+        success: false,
+        message: "Verification token missing"
+      });
+    }
+    // FIND USER
+    const user = await User.findOne({
+      verification_token: token
+    });
+    // INVALID TOKEN
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid verification token"
+      });
+    }
+    // CHECK TOKEN EXPIRY
+    if (
+      user.verification_token_expiry <
+      new Date()
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Verification token expired"
+      });
+    }
+
+
+    // VERIFY USER
+    user.is_verified = true;
+    user.verification_token = null;
+    user.verification_token_expiry = null;
+    // SAVE
+    await user.save();
+    // RESPONSE
+    return res.status(200).json({
+      success: true,
+      message:
+        "Email verified successfully. Wait for admin approval."
+    });
+  }
+
+  catch (err) {
+
+    return res.status(500).json({
+
+      success: false,
+
+      message: err.message
+    });
+  }
+};
+
 //------------------profile-------------------------------
-exports.me = async (req,res)=>{
+exports.profile = async (req,res)=>{
   try{
     console.log(req.user)
   const  user = await User.findOne({employeeId:req.user.employeeId}).select("-passwordHash -__v");

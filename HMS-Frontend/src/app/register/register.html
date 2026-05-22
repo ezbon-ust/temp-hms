@@ -13,165 +13,161 @@
 
         <!-- Name -->
         <div class="form-group">
+
           <label>Full Name *</label>
 
-          <input
-            type="text"
-            formControlName="name"
-            placeholder="John Doe"
-          />
+          <input type="text" formControlName="name" placeholder="John Doe" />
 
-          <small *ngIf="registerForm.get('name')?.invalid && registerForm.get('name')?.touched">
+          <small *ngIf="
+              registerForm.get('name')?.invalid &&
+              registerForm.get('name')?.touched
+            ">
             Name is required
           </small>
+
         </div>
 
         <!-- Email -->
         <div class="form-group">
+
           <label>Email *</label>
 
-          <input
-            type="email"
-            formControlName="email"
-            placeholder="john@example.com"
-          />
+          <input type="email" formControlName="email" placeholder="john@example.com" />
 
-          <small *ngIf="registerForm.get('email')?.invalid && registerForm.get('email')?.touched">
+          <small *ngIf="
+              registerForm.get('email')?.invalid &&
+              registerForm.get('email')?.touched
+            ">
             Valid email is required
           </small>
+
         </div>
 
         <!-- Phone -->
         <div class="form-group">
+
           <label>Phone *</label>
 
-          <input
-            type="tel"
-            formControlName="phone"
-            placeholder="+91 9876543210"
-          />
+          <input type="tel" formControlName="phone" placeholder="9876543210" />
+
+          <small *ngIf="
+              registerForm.get('phone')?.invalid &&
+              registerForm.get('phone')?.touched
+            ">
+            Valid phone number is required
+          </small>
+
         </div>
 
         <!-- Department -->
         <div class="form-group">
+
           <label>Department *</label>
 
           <select formControlName="department">
-            <option value="">Select Department</option>
+
+            <option value="">
+              Select Department
+            </option>
 
             <option *ngFor="let dept of departments" [value]="dept">
               {{ dept }}
             </option>
+
           </select>
-        </div>
 
-        <!-- Role -->
-        <div class="form-group">
-          <label>Role *</label>
-
-          <select
-            formControlName="roles"
-            (change)="onRoleChange()"
-          >
-            <option value="">Select Role</option>
-
-            <option *ngFor="let role of roles" [value]="role">
-              {{ role }}
-            </option>
-          </select>
         </div>
 
         <!-- Designation -->
         <div class="form-group">
+
           <label>Designation *</label>
 
-          <input
-            type="text"
-            formControlName="designation"
-            placeholder="Senior Doctor"
-          />
+          <select formControlName="designation" (change)="onDesignationChange()">
+
+            <option value="">
+              Select Designation
+            </option>
+
+            <option *ngFor="let designation of designations" [value]="designation">
+              {{ designation }}
+            </option>
+
+          </select>
+
         </div>
 
-        <!-- Medical Registration -->
-        <div
-          class="form-group"
-          *ngIf="showMedicalFields"
-        >
-          <label>Medical Registration No</label>
-
-          <input
-            type="text"
-            formControlName="medicalRegistrationNo"
-            placeholder="MED12345"
-          />
-        </div>
-
-        <!-- Specialization -->
-        <div
-          class="form-group"
-          *ngIf="selectedRole === 'DOCTOR'"
-        >
-          <label>Specialization</label>
-
-          <input
-            type="text"
-            formControlName="specialization"
-            placeholder="Cardiology"
-          />
-        </div>
-
-        <!-- Consultation Fee -->
-        <div
-          class="form-group"
-          *ngIf="selectedRole === 'DOCTOR'"
-        >
-          <label>Consultation Fee</label>
-
-          <input
-            type="number"
-            formControlName="consultationFee"
-            placeholder="500"
-          />
-        </div>
-
-        <!-- Password -->
+        <!-- Joining Date -->
         <div class="form-group">
-          <label>Password *</label>
 
-          <input
-            type="password"
-            formControlName="password"
-            placeholder="Minimum 8 characters"
-          />
+          <label>Joining Date *</label>
 
-          <small *ngIf="registerForm.get('password')?.invalid && registerForm.get('password')?.touched">
-            Password must be at least 8 characters
-          </small>
+          <input type="date" formControlName="joiningDate" />
+
         </div>
 
-        <!-- Confirm Password -->
-        <div class="form-group">
-          <label>Confirm Password *</label>
+        <!-- Medical Registration Number -->
+        <div class="form-group" *ngIf="showMedicalFields">
 
-          <input
-            type="password"
-            formControlName="confirmPassword"
-            placeholder="Confirm password"
-          />
+          <label>Medical Registration Number</label>
 
-          <small *ngIf="registerForm.hasError('passwordMismatch') && registerForm.get('confirmPassword')?.touched">
-            Passwords do not match
-          </small>
+          <input type="text" formControlName="medicalRegistrationNumber" placeholder="MED12345" />
+
+        </div>
+
+        <!-- Qualification -->
+        <div class="form-group" *ngIf="showQualification ">
+
+          <label>Qualification</label>
+
+          <input type="text" formControlName="qualification" placeholder="Eg MBBS,Bsc,Bcom" />
+
+        </div>
+
+        <!-- Specialisation -->
+        <div class="form-group" *ngIf="showSpecialisation">
+
+          <label>Specialisation</label>
+
+          <input type="text" formControlName="specialisation" placeholder="Cardiology" />
+
         </div>
 
       </div>
+      <!-- Password -->
+      <div class="form-group">
 
-      <!-- Submit Button -->
-      <button
-        type="submit"
-        [disabled]="registerForm.invalid"
-      >
-        Register
+        <label>Password *</label>
+
+        <input type="password" formControlName="password" placeholder="Enter password" />
+
+        <small *ngIf="
+      registerForm.get('password')?.invalid &&
+      registerForm.get('password')?.touched
+    ">
+          Password must be at least 6 characters
+        </small>
+
+      </div>
+
+      <!-- Confirm Password -->
+      <div class="form-group">
+
+        <label>Confirm Password *</label>
+
+        <input type="password" formControlName="confirmPassword" placeholder="Confirm password" />
+
+        <small *ngIf="
+      registerForm.hasError('passwordMismatch') &&
+      registerForm.get('confirmPassword')?.touched
+    ">
+          Passwords do not match
+        </small>
+
+      </div>
+
+      <button type="submit" [disabled]="registerForm.invalid">
+        Submit Registration Request
       </button>
 
     </form>

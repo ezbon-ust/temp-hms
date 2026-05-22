@@ -1,7 +1,13 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-
+import { Router } from '@angular/router';
+import {
+  FormBuilder,
+  FormGroup,
+  ReactiveFormsModule,
+  Validators
+} from '@angular/forms';
+import { AuthService } from '../services/auth';
 @Component({
   selector: 'app-register',
   standalone: true,
@@ -13,42 +19,75 @@ export class Register {
 
   registerForm: FormGroup;
 
-  roles = [
+  selectedDesignation = '';
+
+  departments = [
+    'OPD',
+    'IPD',
+    'LAB',
+    'PHARMACY',
+    'ADMIN'
+  ];
+
+  designations = [
+    'OWNER',
     'DOCTOR',
     'NURSE',
+    'RECEPTIONIST',
+    'CASHIER',
     'LAB_TECH',
     'PHARMACIST',
     'ADMIN'
   ];
 
-  departments = [
-    'Cardiology',
-    'Neurology',
-    'Emergency',
-    'Pharmacy',
-    'Laboratory'
-  ];
-
-  selectedRole: string = '';
-  showMedicalFields = false;
-
-  constructor(private fb: FormBuilder) {
+  constructor(private fb: FormBuilder,private authService:AuthService,private router: Router) {
 
     this.registerForm = this.fb.group(
       {
+
         name: ['', Validators.required],
-        email: ['', [Validators.required, Validators.email]],
-        phone: ['', Validators.required],
+
+        phone: [
+          '',
+          [
+            Validators.required,
+            Validators.pattern(/^[0-9]{10}$/)
+          ]
+        ],
+
+        email: [
+          '',
+          [
+            Validators.required,
+            Validators.email
+          ]
+        ],
+
         department: ['', Validators.required],
+
         designation: ['', Validators.required],
-        roles: ['', Validators.required],
 
-        medicalRegistrationNo: [''],
-        specialization: [''],
-        consultationFee: [''],
+        joiningDate: ['', Validators.required],
 
-        password: ['', [Validators.required, Validators.minLength(8)]],
-        confirmPassword: ['', Validators.required]
+        medicalRegistrationNumber: [''],
+
+        specialisation: [''],
+
+        qualification: [''],
+
+        password: [
+          '',
+          [
+            Validators.required,
+            Validators.minLength(6)
+          ]
+        ],
+
+        confirmPassword: [
+          '',
+          Validators.required
+        ]
+
       },
       {
         validators: this.passwordMatchValidator
@@ -57,37 +96,95 @@ export class Register {
   }
 
   passwordMatchValidator(form: FormGroup) {
-    const password = form.get('password')?.value;
-    const confirmPassword = form.get('confirmPassword')?.value;
+
+    const password =
+      form.get('password')?.value;
+
+    const confirmPassword =
+      form.get('confirmPassword')?.value;
 
     if (password !== confirmPassword) {
-      return { passwordMismatch: true };
+
+      return {
+        passwordMismatch: true
+      };
     }
 
     return null;
   }
 
-  onRoleChange(): void {
-    const role = this.registerForm.get('roles')?.value;
+  onDesignationChange(): void {
 
-    this.selectedRole = role;
+    this.selectedDesignation =
+      this.registerForm.get('designation')?.value;
+  }
 
-    this.showMedicalFields = [
+  get showQualification(): boolean {
+
+    return [
       'DOCTOR',
       'NURSE',
+      'PHARMACIST',
       'LAB_TECH',
+      'RECEPTIONIST',
+      'CASHIER',
+      'ADMIN'
+    ].includes(this.selectedDesignation);
+  }
+
+  get showMedicalFields(): boolean {
+
+    return [
+      'DOCTOR',
+      'NURSE',
       'PHARMACIST'
-    ].includes(role);
+    ].includes(this.selectedDesignation);
+  }
+
+  get showSpecialisation(): boolean {
+
+    return this.selectedDesignation === 'DOCTOR';
   }
 
   onSubmit(): void {
-    if (this.registerForm.invalid) {
-      this.registerForm.markAllAsTouched();
-      return;
-    }
 
-    console.log(this.registerForm.value);
+  if (this.registerForm.invalid) {
 
-    alert('Form Submitted Successfully!');
+    this.registerForm.markAllAsTouched();
+
+    return;
   }
+
+  const formData = {
+    ...this.registerForm.value
+  };
+
+  // confirmPassword not needed in backend
+  delete formData.confirmPassword;
+
+  this.authService
+    .register(formData)
+    .subscribe({
+
+      next: (res: any) => {
+
+        console.log(res);
+
+       
+ 
+        this.registerForm.reset();
+         this.router.navigate(['/verify-email']);
+      },
+
+      error: (err) => {
+
+        console.log(err);
+
+        alert(
+          err.error.message ||
+          'Registration failed'
+        );
+      }
+    });
+}
 }

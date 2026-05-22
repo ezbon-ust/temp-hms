@@ -20,8 +20,11 @@ app.use(morgan("dev"));
 const authRoutes = require("./routes/authRoutes");
 app.use("/api/auth",authRoutes);
 
-const employeeRoutes = require("./routes/employeeRoutes")
-app.use("/api/admin",employeeRoutes);
+const employeeRoutes = require("./routes/authRoutes");
+app.use("/api/auth",employeeRoutes);
+
+const adminRoutes = require("./routes/employeeRoutes")
+app.use("/api/admin",adminRoutes);
 
 const nodeRoutes = require("./routes/nodeRoutes")
 app.use("/api/node",nodeRoutes)
