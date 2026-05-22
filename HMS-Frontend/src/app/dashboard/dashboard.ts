@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-
+import { AuthService } from '../services/auth';
 import { Employee } from '../models/employee.model';
 import { Activity } from '../models/activity.model';
 import { Request } from '../models/request.model';
@@ -125,9 +125,59 @@ export class Dashboard implements OnInit {
   // ── Requests ──────────────────────────────────────────────
   requests: Request[] = [];
 
-  constructor(private router: Router) {}
+  constructor(private router: Router,
+    private authService:AuthService
+  ) {}
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    this.loadPendingRequests();
+  } 
+  loadPendingRequests(): void {
+
+  this.authService
+    .getPendingUsers()
+    .subscribe({
+
+      next: (res: any) => {
+
+        this.requests = res.users.map((u: any) => ({
+
+          _id: u.employeeId,
+
+          name: u.employee?.name || 'Unknown',
+
+          role: u.role,
+
+          designation: u.role,
+
+          department:
+            u.employee?.department || 'N/A',
+
+          email: u.email,
+
+          avatar: makeAvatar(
+            u.employee?.name || 'U'
+          ),
+
+          requestedBy: 'Self Registration',
+
+          requestorRole: 'Employee',
+
+          time: 'Recently'
+        }));
+      },
+
+      error: (err) => {
+
+        console.log(err);
+
+        this.showToast(
+          'Failed to load requests',
+          'error'
+        );
+      }
+    });
+}
 
   // ── Utility Methods ───────────────────────────────────────
   getAvatarColor(name: string): string {
@@ -320,66 +370,68 @@ export class Dashboard implements OnInit {
     this.showToast(`${emp.name} removed`, 'error');
   }
 
-  approveRequest(req: Request): void {
+ approveRequest(req: Request): void {
 
-    const emp: Employee = {
-      _id: Date.now(),
-      name: req.name,
-      roles: req.role,
-      department: req.department,
-      email: req.email,
-      designation: req.designation,
-      status: 'Active',
-      avatar: makeAvatar(req.name),
-      joiningDate: new Date().toISOString().split('T')[0]
-    };
+  this.authService
+    .approveUser(String(req._id))
+    .subscribe({
 
-    this.employees = [emp, ...this.employees];
+      next: () => {
 
-    this.requests = this.requests.filter(
-      r => r._id !== req._id
-    );
+        // remove request card from UI
+        this.requests = this.requests.filter(
+          r => r._id !== req._id
+        );
 
-    this.activities = [
-      {
-        _id: Date.now(),
-        actor: 'Admin',
-        actorRole: 'Admin',
-        action: 'approved and added',
-        target: `${req.name} (${req.role})`,
-        time: 'Just now',
-        icon: '✅'
+        // success toast
+        this.showToast(
+          `${req.name} approved successfully`
+        );
       },
-      ...this.activities
-    ];
 
-    this.showToast(`${req.name} approved & added`);
-  }
+      error: (err) => {
+
+        console.log(err);
+
+        this.showToast(
+          'Approval failed',
+          'error'
+        );
+      }
+    });
+}
 
   rejectRequest(req: Request): void {
 
-    this.requests = this.requests.filter(
-      r => r._id !== req._id
-    );
+  this.authService
+    .rejectUser(String(req._id))
+    .subscribe({
 
-    this.activities = [
-      {
-        _id: Date.now(),
-        actor: 'Admin',
-        actorRole: 'Admin',
-        action: 'rejected request for',
-        target: req.name,
-        time: 'Just now',
-        icon: '❌'
+      next: () => {
+
+        // remove request from UI
+        this.requests = this.requests.filter(
+          r => r._id !== req._id
+        );
+
+        // show toast
+        this.showToast(
+          `${req.name} rejected`,
+          'error'
+        );
       },
-      ...this.activities
-    ];
 
-    this.showToast(
-      `Request for ${req.name} rejected`,
-      'error'
-    );
-  }
+      error: (err) => {
+
+        console.log(err);
+
+        this.showToast(
+          'Reject failed',
+          'error'
+        );
+      }
+    });
+}
 
   goToProfile(): void {
     this.router.navigate(['/profile']);

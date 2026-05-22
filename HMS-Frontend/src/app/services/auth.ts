@@ -22,7 +22,29 @@ export class AuthService {
       `${this.apiUrl}/register`,
       data
     )
-  }
+  } 
+  getPendingUsers() {
+
+  return this.http.get(
+    'https://project-mfjb2.vercel.app/api/admin/pending-users'
+  );
+}
+
+approveUser(employeeId: string) {
+
+  return this.http.patch(
+    `https://project-mfjb2.vercel.app/api/admin/approve/${employeeId}`,
+    {}
+  );
+}
+
+rejectUser(employeeId: string) {
+
+  return this.http.patch(
+    `https://project-mfjb2.vercel.app/api/admin/reject/${employeeId}`,
+    {}
+  );
+}
 
   getToken(){
     return localStorage.getItem('token')
