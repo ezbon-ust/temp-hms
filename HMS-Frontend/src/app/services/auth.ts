@@ -19,7 +19,7 @@ export class AuthService {
 
   register(data:any) {
     return this.http.post(
-      `${this.apiUrl}/signup`,
+      `${this.apiUrl}/register`,
       data
     )
   }
